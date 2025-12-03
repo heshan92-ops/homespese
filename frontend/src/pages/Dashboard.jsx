@@ -11,6 +11,9 @@ const Dashboard = () => {
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(today.getFullYear());
     const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
+    const [budgetStatus, setBudgetStatus] = useState([]);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const { lastUpdate, setFabDate } = useFab(); // Use context
     const [movements, setMovements] = useState([]); // NEW
 
     useEffect(() => {
