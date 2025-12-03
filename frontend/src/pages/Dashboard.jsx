@@ -56,10 +56,10 @@ const Dashboard = () => {
 
     return (
         <>
-            <div className="flex gap-6">
-                {/* LEFT SIDEBAR - FIXED */}
-                <div className="w-64 flex-shrink-0">
-                    <div className="fixed w-64 space-y-4 h-screen overflow-y-auto pr-4" style={{ paddingBottom: '100px' }}>
+            <div className="flex flex-col md:flex-row gap-6">
+                {/* LEFT SIDEBAR - RESPONSIVE */}
+                <div className="w-full md:w-64 flex-shrink-0">
+                    <div className="md:sticky md:top-24 space-y-4">
 
                         {/* KPI Cards - TOP */}
                         <div className={`space-y-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
@@ -92,30 +92,33 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Spese Totali */}
-                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="p-2 rounded-lg bg-rose-50">
-                                        <TrendingDown size={18} className="text-rose-600" />
+                            {/* Spese/Entrate Grid for Mobile */}
+                            <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
+                                {/* Spese Totali */}
+                                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="p-2 rounded-lg bg-rose-50">
+                                            <TrendingDown size={18} className="text-rose-600" />
+                                        </div>
                                     </div>
+                                    <p className="text-xs font-medium text-slate-500 mb-1">Spese Totali</p>
+                                    <h3 className="text-lg md:text-2xl font-bold text-rose-600 truncate">
+                                        € {summary.expense.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </h3>
                                 </div>
-                                <p className="text-xs font-medium text-slate-500 mb-1">Spese Totali</p>
-                                <h3 className="text-2xl font-bold text-rose-600">
-                                    € {summary.expense.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </h3>
-                            </div>
 
-                            {/* Entrate Totali */}
-                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="p-2 rounded-lg bg-emerald-50">
-                                        <TrendingUp size={18} className="text-emerald-600" />
+                                {/* Entrate Totali */}
+                                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="p-2 rounded-lg bg-emerald-50">
+                                            <TrendingUp size={18} className="text-emerald-600" />
+                                        </div>
                                     </div>
+                                    <p className="text-xs font-medium text-slate-500 mb-1">Entrate Totali</p>
+                                    <h3 className="text-lg md:text-2xl font-bold text-emerald-600 truncate">
+                                        € {summary.income.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </h3>
                                 </div>
-                                <p className="text-xs font-medium text-slate-500 mb-1">Entrate Totali</p>
-                                <h3 className="text-2xl font-bold text-emerald-600">
-                                    € {summary.income.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </h3>
                             </div>
                         </div>
                     </div>
