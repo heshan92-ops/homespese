@@ -1,0 +1,324 @@
+import React, { useEffect, useState } from 'react';
+import api from '../api/client';
+import { Plus, Trash2, User, Shield, ShieldAlert, Pencil, Mail } from 'lucide-react';
+
+const Users = () => {
+    const [users, setUsers] = useState([]);
+    const [families, setFamilies] = useState([]); // NEW
+    const [showForm, setShowForm] = useState(false);
+    const [formData, setFormData] = useState({ username: '', email: '', first_name: '', last_name: '', password: '', family_id: '' }); // NEW family_id
+    const [error, setError] = useState('');
+    const [editingUser, setEditingUser] = useState(null);
+
+    const fetchUsers = async () => {
+        try {
+            const res = await api.get('/users');
+            setUsers(res.data);
+        } catch (error) {
+            console.error("Error fetching users", error);
+        }
+    };
+
+    const fetchFamilies = async () => { // NEW
+        try {
+            const res = await api.get('/families');
+            setFamilies(res.data);
+        } catch (error) {
+            console.error("Error fetching families", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+        fetchFamilies(); // NEW
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            if (editingUser) {
+                // Update
+                const updateData = {
+                    username: formData.username,
+                    email: formData.email || null,
+                    first_name: formData.first_name || null,
+                    last_name: formData.last_name || null,
+                    family_id: formData.family_id || null // NEW
+                };
+                if (formData.password) {
+                    updateData.password = formData.password;
+                }
+                await api.put(`/users/${editingUser.id}`, updateData);
+            } else {
+                // Create - convert empty family_id to null
+                const createData = {
+                    ...formData,
+                    family_id: formData.family_id || null
+                };
+                await api.post('/users', createData);
+            }
+
+            handleCancel();
+            fetchUsers();
+        } catch (error) {
+            console.error("Error saving user", error);
+            setError(error.response?.data?.detail || 'Errore durante il salvataggio');
+        }
+    };
+
+    const handleEdit = (user) => {
+        setEditingUser(user);
+        setFormData({
+            username: user.username,
+            email: user.email || '',
+            first_name: user.first_name || '',
+            last_name: user.last_name || '',
+            password: '',
+            family_id: user.family_id || '' // NEW
+        });
+        setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleCancel = () => {
+        setShowForm(false);
+        setEditingUser(null);
+        setFormData({ username: '', email: '', first_name: '', last_name: '', password: '', family_id: '' });
+        setError('');
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Sei sicuro di voler eliminare questo utente?')) {
+            try {
+                await api.delete(`/users/${id}`);
+                fetchUsers();
+            } catch (error) {
+                console.error("Error deleting user", error);
+            }
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800">Gestione Utenti</h1>
+                    <p className="text-slate-500 text-sm">Gestisci gli accessi alla piattaforma</p>
+                </div>
+                <button
+                    onClick={() => {
+                        if (showForm && !editingUser) {
+                            handleCancel();
+                        } else {
+                            setEditingUser(null);
+                            setFormData({ username: '', email: '', first_name: '', last_name: '', password: '', family_id: '' }); // NEW
+                            setShowForm(true);
+                        }
+                    }}
+                    className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 hover:bg-emerald-700 transition-all shadow-sm hover:shadow-emerald-200 hover:shadow-md"
+                >
+                    <Plus size={20} />
+                    <span>Nuovo Utente</span>
+                </button>
+            </div>
+
+            {showForm && (
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 animate-in slide-in-from-top-4 duration-300 max-w-2xl">
+                    <h2 className="text-lg font-semibold mb-4 text-slate-800">
+                        {editingUser ? 'Modifica Utente' : 'Nuovo Utente'}
+                    </h2>
+                    {error && (
+                        <div className="bg-rose-50 text-rose-600 p-3 rounded-lg mb-4 text-sm flex items-center gap-2">
+                            <ShieldAlert size={16} />
+                            {error}
+                        </div>
+                    )}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Username</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.username}
+                                    onChange={e => setFormData({ ...formData, username: e.target.value })}
+                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                                    placeholder="Inserisci username"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                                    placeholder="email@esempio.com"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Nome</label>
+                                <input
+                                    type="text"
+                                    value={formData.first_name || ''}
+                                    onChange={e => setFormData({ ...formData, first_name: e.target.value })}
+                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                                    placeholder="Mario"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Cognome</label>
+                                <input
+                                    type="text"
+                                    value={formData.last_name || ''}
+                                    onChange={e => setFormData({ ...formData, last_name: e.target.value })}
+                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                                    placeholder="Rossi"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Famiglia</label>
+                            <select
+                                value={formData.family_id}
+                                onChange={e => setFormData({ ...formData, family_id: e.target.value ? parseInt(e.target.value) : '' })}
+                                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                            >
+                                <option value="">Seleziona Famiglia</option>
+                                {families.map(f => (
+                                    <option key={f.id} value={f.id}>{f.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                {editingUser ? 'Nuova Password (opzionale)' : 'Password'}
+                            </label>
+                            <input
+                                type="password"
+                                required={!editingUser}
+                                value={formData.password}
+                                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                                placeholder={editingUser ? "Lascia vuoto per non cambiare" : "Inserisci password"}
+                            />
+                        </div>
+
+                        <div className="flex justify-end space-x-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={handleCancel}
+                                className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors"
+                            >
+                                Annulla
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-medium shadow-sm hover:shadow-md transition-all"
+                            >
+                                {editingUser ? 'Aggiorna Utente' : 'Crea Utente'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-100">
+                        <thead className="bg-slate-50/50">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Utente</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Famiglia</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Ruolo</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Stato</th>
+                                <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-slate-100">
+                            {users.map((u) => (
+                                <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                                                <User size={20} />
+                                            </div>
+                                            <div className="ml-4">
+                                                <div className="text-sm font-medium text-slate-900">{u.username}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {u.email ? (
+                                            <div className="flex items-center text-sm text-slate-500">
+                                                <Mail size={14} className="mr-2" />
+                                                {u.email}
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 italic">Nessuna email</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {u.family_id ? (
+                                            <span className="text-sm text-slate-700 font-medium">
+                                                {families.find(f => f.id === u.family_id)?.name || `ID: ${u.family_id}`}
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 italic">Nessuna</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {u.is_superuser ? (
+                                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 border border-purple-200 items-center gap-1">
+                                                <Shield size={12} /> Superadmin
+                                            </span>
+                                        ) : (
+                                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800 border border-slate-200">
+                                                Utente
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${u.is_active
+                                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                            : 'bg-rose-100 text-rose-800 border border-rose-200'
+                                            }`}>
+                                            {u.is_active ? 'Attivo' : 'Inattivo'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex justify-end space-x-2">
+                                            <button
+                                                onClick={() => handleEdit(u)}
+                                                className="text-slate-400 hover:text-emerald-600 p-2 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                title="Modifica utente"
+                                            >
+                                                <Pencil size={18} />
+                                            </button>
+                                            {!u.is_superuser && (
+                                                <button
+                                                    onClick={() => handleDelete(u.id)}
+                                                    className="text-slate-400 hover:text-rose-600 p-2 hover:bg-rose-50 rounded-lg transition-colors"
+                                                    title="Elimina utente"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Users;
