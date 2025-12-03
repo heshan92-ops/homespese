@@ -11,9 +11,7 @@ const Dashboard = () => {
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(today.getFullYear());
     const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
-    const [budgetStatus, setBudgetStatus] = useState([]);
-    const [isTransitioning, setIsTransitioning] = useState(false);
-    const { lastUpdate, setFabDate } = useFab(); // Use context
+    const [movements, setMovements] = useState([]); // NEW
 
     useEffect(() => {
         // Ensure FAB uses today's date when on Dashboard
@@ -28,12 +26,14 @@ const Dashboard = () => {
         setIsTransitioning(true);
         try {
             const params = { month: selectedMonth, year: selectedYear };
-            const [summaryRes, budgetRes] = await Promise.all([
+            const [summaryRes, budgetRes, movementsRes] = await Promise.all([
                 api.get('/dashboard/summary', { params }),
-                api.get('/dashboard/budget-status', { params })
+                api.get('/dashboard/budget-status', { params }),
+                api.get('/movements', { params }) // Fetch movements
             ]);
             setSummary(summaryRes.data);
             setBudgetStatus(budgetRes.data.budgets || budgetRes.data);
+            setMovements(movementsRes.data); // Set movements
         } catch (error) {
             console.error("Error fetching dashboard data", error);
         } finally {
@@ -136,6 +136,52 @@ const Dashboard = () => {
                                 onChange={handleMonthChange}
                                 compact={false}
                             />
+                        </div>
+
+                        {/* Recent Movements - NEW */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                <h3 className="font-bold text-slate-800">Ultimi Movimenti</h3>
+                                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                                    {movements.length} transazioni
+                                </span>
+                            </div>
+                            <div className="max-h-96 overflow-y-auto">
+                                {movements.length > 0 ? (
+                                    <div className="divide-y divide-slate-100">
+                                        {movements.map((m) => (
+                                            <div key={m.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className={`p-2 rounded-full ${m.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                                        {m.type === 'INCOME' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-slate-800 text-sm">{m.category}</p>
+                                                        <p className="text-xs text-slate-500">
+                                                            {new Date(m.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}
+                                                            {m.description && ` • ${m.description}`}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className={`font-bold text-sm ${m.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-700'}`}>
+                                                        {m.type === 'EXPENSE' && '-'}€ {m.amount.toFixed(2)}
+                                                    </p>
+                                                    {m.is_planned && (
+                                                        <span className="text-[10px] font-medium bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100">
+                                                            Prevista
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-8 text-center text-slate-400 text-sm">
+                                        Nessun movimento in questo periodo
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Budget Monitoring */}
