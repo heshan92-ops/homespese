@@ -165,7 +165,18 @@ def get_monthly_aggregates(db: Session, year: int, month: int, family_id: int): 
         extract('month', models.Movement.date) == month
     ).scalar() or 0.0
 
-    return {"income": income, "expense": expense, "balance": income - expense}
+    # Calculate TOTAL balance (All time)
+    total_income = db.query(func.sum(models.Movement.amount)).filter(
+        models.Movement.family_id == family_id,
+        models.Movement.type == "INCOME"
+    ).scalar() or 0.0
+
+    total_expense = db.query(func.sum(models.Movement.amount)).filter(
+        models.Movement.family_id == family_id,
+        models.Movement.type == "EXPENSE"
+    ).scalar() or 0.0
+
+    return {"income": income, "expense": expense, "balance": total_income - total_expense}
 
 def get_expenses_by_category(db: Session, year: int, month: int, family_id: int): # NEW family_id
     return db.query(models.Movement.category, func.sum(models.Movement.amount)).filter(

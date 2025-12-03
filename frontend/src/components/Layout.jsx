@@ -6,13 +6,14 @@ import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import GlobalFab from './GlobalFab';
 
-const NavItem = ({ to, icon: Icon, label }) => {
+const NavItem = ({ to, icon: Icon, label, onClick }) => {
     const location = useLocation();
     const isActive = location.pathname === to;
 
     return (
         <Link
             to={to}
+            onClick={onClick}
             className={clsx(
                 "flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200",
                 isActive
@@ -131,13 +132,13 @@ const Layout = ({ children }) => {
                     <div className="md:hidden bg-white border-t border-slate-100 animate-in slide-in-from-top-5 duration-200">
                         <div className="px-4 pt-2 pb-4 space-y-1">
                             <div className="flex flex-col space-y-2">
-                                <NavItem to="/" icon={LayoutDashboard} label="Dashboard" />
-                                <NavItem to="/movements" icon={List} label="Movimenti" />
-                                <NavItem to="/budgets" icon={PieChart} label="Budget" />
-                                <NavItem to="/recurring" icon={Repeat} label="Ricorrenti" />
-                                <NavItem to="/categories" icon={Tag} label="Categorie" />
+                                <NavItem to="/" icon={LayoutDashboard} label="Dashboard" onClick={() => setIsMobileMenuOpen(false)} />
+                                <NavItem to="/movements" icon={List} label="Movimenti" onClick={() => setIsMobileMenuOpen(false)} />
+                                <NavItem to="/budgets" icon={PieChart} label="Budget" onClick={() => setIsMobileMenuOpen(false)} />
+                                <NavItem to="/recurring" icon={Repeat} label="Ricorrenti" onClick={() => setIsMobileMenuOpen(false)} />
+                                <NavItem to="/categories" icon={Tag} label="Categorie" onClick={() => setIsMobileMenuOpen(false)} />
                                 {user?.is_superuser && (
-                                    <NavItem to="/users" icon={Users} label="Utenti" />
+                                    <NavItem to="/users" icon={Users} label="Utenti" onClick={() => setIsMobileMenuOpen(false)} />
                                 )}
                             </div>
                             <div className="pt-4 mt-4 border-t border-slate-100">
