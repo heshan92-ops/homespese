@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import String
 from typing import List
 import crud, models
 from database import get_db
@@ -29,7 +30,7 @@ def global_search(
         (
             models.Movement.category.ilike(query) |
             models.Movement.description.ilike(query) |
-            models.Movement.amount.cast(db.String).ilike(query)
+            models.Movement.amount.cast(String).ilike(query)
         )
     ).order_by(models.Movement.date.desc()).limit(20).all()
     
