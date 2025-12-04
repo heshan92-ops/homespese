@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Plus, Edit2, AlertCircle, Trash2, X, ArrowRight, List } from 'lucide-react';
+import { Plus, Edit2, AlertCircle, Trash2, X, ArrowRight, List, Wallet, PiggyBank, Calculator } from 'lucide-react';
 import CategoryMovementsModal from '../components/CategoryMovementsModal';
 
 const Budgets = () => {
     const [budgets, setBudgets] = useState([]);
     const [expenses, setExpenses] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [summary, setSummary] = useState({ income: 0 }); // NEW: for income data
     const [editingBudget, setEditingBudget] = useState(null);
     const [formData, setFormData] = useState({
         category: '',
@@ -24,14 +25,16 @@ const Budgets = () => {
 
     const fetchData = async () => {
         try {
-            const [budgetsRes, chartRes, categoriesRes] = await Promise.all([
+            const [budgetsRes, chartRes, categoriesRes, summaryRes] = await Promise.all([
                 api.get('/budgets'),
                 api.get('/dashboard/chart-data'),
-                api.get('/categories')
+                api.get('/categories'),
+                api.get('/dashboard/summary') // Fetch summary for income
             ]);
             setBudgets(budgetsRes.data);
             setExpenses(chartRes.data.expenses_by_category);
             setCategories(categoriesRes.data);
+            setSummary(summaryRes.data);
         } catch (error) {
             console.error("Error fetching data", error);
         }
@@ -127,6 +130,11 @@ const Budgets = () => {
         return { expense, percentage };
     };
 
+    // Calculate Totals
+    const totalBudget = budgets.reduce((acc, curr) => acc + curr.amount, 0);
+    const totalIncome = summary.income || 0;
+    const difference = totalIncome - totalBudget;
+
     return (
         <div className="space-y-6 relative">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -145,6 +153,44 @@ const Budgets = () => {
                     <Plus size={20} />
                     <span>Nuovo Budget</span>
                 </button>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Totale Budget */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+                        <Wallet size={24} />
+                    </div>
+                    <div>
+                        <p className="text-sm text-slate-500 font-medium">Budget Allocato</p>
+                        <h3 className="text-2xl font-bold text-slate-800">€ {totalBudget.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</h3>
+                    </div>
+                </div>
+
+                {/* Totale Entrate */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                        <PiggyBank size={24} />
+                    </div>
+                    <div>
+                        <p className="text-sm text-slate-500 font-medium">Entrate Mensili</p>
+                        <h3 className="text-2xl font-bold text-slate-800">€ {totalIncome.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</h3>
+                    </div>
+                </div>
+
+                {/* Differenza */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div className={`p-3 rounded-xl ${difference >= 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-rose-50 text-rose-600'}`}>
+                        <Calculator size={24} />
+                    </div>
+                    <div>
+                        <p className="text-sm text-slate-500 font-medium">Disponibile</p>
+                        <h3 className={`text-2xl font-bold ${difference >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>
+                            {difference >= 0 ? '+' : ''}€ {difference.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                        </h3>
+                    </div>
+                </div>
             </div>
 
             {/* Edit/Create Form */}
