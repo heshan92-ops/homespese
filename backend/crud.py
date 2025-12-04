@@ -180,15 +180,20 @@ def get_monthly_aggregates(db: Session, year: int, month: int, family_id: int): 
         extract('month', models.Movement.date) == month
     ).scalar() or 0.0
 
-    # Calculate TOTAL balance (All time)
+    # Calculate TOTAL balance (All time up to today)
+    from datetime import date as dt_date
+    today = dt_date.today()
+    
     total_income = db.query(func.sum(models.Movement.amount)).filter(
         models.Movement.family_id == family_id,
-        models.Movement.type == "INCOME"
+        models.Movement.type == "INCOME",
+        models.Movement.date <= today  # NEW: Only movements up to today
     ).scalar() or 0.0
 
     total_expense = db.query(func.sum(models.Movement.amount)).filter(
         models.Movement.family_id == family_id,
-        models.Movement.type == "EXPENSE"
+        models.Movement.type == "EXPENSE",
+        models.Movement.date <= today  # NEW: Only movements up to today
     ).scalar() or 0.0
 
     return {"income": income, "expense": expense, "balance": total_income - total_expense}
