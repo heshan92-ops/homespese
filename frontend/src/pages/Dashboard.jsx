@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown, Wallet, Target, AlertCircle } from 'lucide-re
 import MonthSelector from '../components/MonthSelector';
 import { useFab } from '../context/FabContext';
 import { useAuth } from '../context/AuthContext';  // NEW
+import ExpandableMovementCard from '../components/ExpandableMovementCard';
 
 const Dashboard = () => {
     const { user } = useAuth();  // NEW: Get user info
@@ -151,32 +152,14 @@ const Dashboard = () => {
                             </div>
                             <div className="max-h-96 overflow-y-auto">
                                 {movements.length > 0 ? (
-                                    <div className="divide-y divide-slate-100">
+                                    <div>
                                         {movements.map((m) => (
-                                            <div key={m.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className={`p-2 rounded-full ${m.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                                                        {m.type === 'INCOME' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium text-slate-800 text-sm">{m.category}</p>
-                                                        <p className="text-xs text-slate-500">
-                                                            {new Date(m.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}
-                                                            {m.description && ` • ${m.description}`}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className={`font-bold text-sm ${m.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-700'}`}>
-                                                        {m.type === 'EXPENSE' && '-'}€ {m.amount.toFixed(2)}
-                                                    </p>
-                                                    {m.is_planned && (
-                                                        <span className="text-[10px] font-medium bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100">
-                                                            Prevista
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
+                                            <ExpandableMovementCard
+                                                key={m.id}
+                                                movement={m}
+                                                onUpdate={fetchData}
+                                                onDelete={fetchData}
+                                            />
                                         ))}
                                     </div>
                                 ) : (

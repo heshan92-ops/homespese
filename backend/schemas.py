@@ -109,6 +109,7 @@ class MovementBase(BaseModel):
     description: Optional[str] = None
     is_planned: bool = False
     is_confirmed: bool = True
+    from_recurring_id: Optional[int] = None
 
 class MovementCreate(MovementBase):
     pass
@@ -122,12 +123,18 @@ class MovementUpdate(BaseModel):
     is_planned: Optional[bool] = None
     is_confirmed: Optional[bool] = None
 
+
 class Movement(MovementBase):
     id: int
     created_at: datetime
     user_id: Optional[int] = None
     from_recurring_id: Optional[int] = None
     family_id: Optional[int] = None
+    
+    # Audit fields
+    created_by_user_id: Optional[int] = None
+    last_modified_by_user_id: Optional[int] = None
+    last_modified_at: Optional[datetime] = None
 
     class Config:
         orm_mode = True

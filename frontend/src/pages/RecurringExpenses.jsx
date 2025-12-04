@@ -11,6 +11,7 @@ const RecurringExpenses = () => {
         amount: '',
         category: '',
         description: '',
+        recurrence_type: 'monthly',
         day_of_month: 1,
         start_date: new Date().toISOString().split('T')[0],
         end_date: null
@@ -40,6 +41,7 @@ const RecurringExpenses = () => {
             amount: recurring.amount,
             category: recurring.category,
             description: recurring.description || '',
+            recurrence_type: recurring.recurrence_type || 'monthly',
             day_of_month: recurring.day_of_month || 1,
             start_date: recurring.start_date || new Date().toISOString().split('T')[0],
             end_date: recurring.end_date || null
@@ -49,7 +51,7 @@ const RecurringExpenses = () => {
     const handleSave = async (e) => {
         e.preventDefault();
         try {
-            if (editingRecurring) {
+            if (editingRecurring && editingRecurring.id) {
                 await api.put(`/recurring/${editingRecurring.id}`, formData);
             } else {
                 await api.post('/recurring', formData);
@@ -79,6 +81,7 @@ const RecurringExpenses = () => {
             amount: '',
             category: categories[0]?.name || '',
             description: '',
+            recurrence_type: 'monthly',
             day_of_month: 1,
             start_date: new Date().toISOString().split('T')[0],
             end_date: null

@@ -101,13 +101,22 @@ def get_available_years(db: Session, family_id: int): # NEW family_id
     return sorted(list(years))
 
 def create_movement(db: Session, movement: schemas.MovementCreate, user_id: int, family_id: int): # NEW family_id
-    db_movement = models.Movement(**movement.dict(), user_id=user_id, family_id=family_id) # Set family_id
+    from datetime import datetime
+    movement_dict = movement.dict()
+    movement_dict['user_id'] = user_id
+    movement_dict['family_id'] = family_id
+    movement_dict['created_by_user_id'] = user_id
+    movement_dict['last_modified_by_user_id'] = user_id
+    movement_dict['last_modified_at'] = datetime.utcnow()
+    
+    db_movement = models.Movement(**movement_dict)
     db.add(db_movement)
     db.commit()
     db.refresh(db_movement)
     return db_movement
 
-def update_movement(db: Session, movement_id: int, movement: schemas.MovementCreate, family_id: int): # NEW family_id
+def update_movement(db: Session, movement_id: int, movement: schemas.MovementCreate, family_id: int, user_id: int = None): # NEW user_id
+    from datetime import datetime
     db_movement = db.query(models.Movement).filter(models.Movement.id == movement_id, models.Movement.family_id == family_id).first() # Filter by family
     if db_movement:
         db_movement.type = movement.type
@@ -118,6 +127,12 @@ def update_movement(db: Session, movement_id: int, movement: schemas.MovementCre
         db_movement.is_planned = movement.is_planned
         db_movement.from_recurring_id = movement.from_recurring_id
         db_movement.is_confirmed = movement.is_confirmed
+        
+        # Update audit fields
+        if user_id:
+            db_movement.last_modified_by_user_id = user_id
+            db_movement.last_modified_at = datetime.utcnow()
+        
         db.commit()
         db.refresh(db_movement)
     return db_movement

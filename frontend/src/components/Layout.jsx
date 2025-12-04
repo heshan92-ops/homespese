@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import GlobalFab from './GlobalFab';
+import GlobalSearch from './GlobalSearch';
 
 const NavItem = ({ to, icon: Icon, label, onClick }) => {
     const location = useLocation();
@@ -61,6 +62,9 @@ const Layout = ({ children }) => {
                                 <NavItem to="/categories" icon={Tag} label="Categorie" />
                             </div>
                             <div className="hidden md:flex items-center space-x-4 pl-6 border-l border-slate-200 relative">
+                                {/* Global Search */}
+                                <GlobalSearch />
+
                                 <button
                                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                                     className="flex items-center space-x-2 text-slate-600 hover:text-emerald-600 transition-colors focus:outline-none"
@@ -116,7 +120,8 @@ const Layout = ({ children }) => {
                         </div>
 
                         {/* Mobile menu button */}
-                        <div className="flex md:hidden items-center">
+                        <div className="flex md:hidden items-center gap-2">
+                            <GlobalSearch />
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                                 className="text-slate-600 hover:text-emerald-600 p-2"

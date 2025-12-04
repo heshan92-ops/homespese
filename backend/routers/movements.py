@@ -37,7 +37,7 @@ def create_movement(movement: schemas.MovementCreate, db: Session = Depends(get_
 
 @router.put("/{movement_id}", response_model=schemas.Movement)
 def update_movement(movement_id: int, movement: schemas.MovementCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    db_movement = crud.update_movement(db, movement_id=movement_id, movement=movement, family_id=current_user.family_id)
+    db_movement = crud.update_movement(db, movement_id=movement_id, movement=movement, family_id=current_user.family_id, user_id=current_user.id)
     if db_movement is None:
         raise HTTPException(status_code=404, detail="Movement not found")
     return db_movement

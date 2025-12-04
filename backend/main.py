@@ -4,7 +4,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from database import engine, Base
-from routers import movements, budgets, dashboard, auth, users, categories, config, recurring, families
+from routers import movements, budgets, dashboard, auth, users, categories, config, recurring, families, search
 
 Base.metadata.create_all(bind=engine)
 
@@ -42,6 +42,7 @@ app.include_router(budgets.router)
 app.include_router(dashboard.router)
 app.include_router(config.router)
 app.include_router(recurring.router)
+app.include_router(search.router)  # NEW: Global search
 
 @app.get("/")
 def read_root():

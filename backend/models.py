@@ -37,7 +37,6 @@ class User(Base):
     family_id = Column(Integer, ForeignKey("families.id"), nullable=True)
 
     family = relationship("Family", back_populates="users")
-    movements = relationship("Movement", back_populates="user")
 
 class Category(Base):
     __tablename__ = "categories"
@@ -67,11 +66,18 @@ class Movement(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     family_id = Column(Integer, ForeignKey("families.id"), nullable=True)
+    
+    # Audit fields
+    created_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    last_modified_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    last_modified_at = Column(DateTime(timezone=True), nullable=True)
 
-    user = relationship("User", back_populates="movements")
+    user = relationship("User", foreign_keys=[user_id])
     family = relationship("Family", back_populates="movements")
     category_rel = relationship("Category", back_populates="movements")
     recurring_source = relationship("RecurringExpense", back_populates="generated_movements")
+    created_by = relationship("User", foreign_keys=[created_by_user_id])
+    last_modified_by = relationship("User", foreign_keys=[last_modified_by_user_id])
 
 class RecurringExpense(Base):
     __tablename__ = "recurring_expenses"
