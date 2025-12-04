@@ -5,6 +5,7 @@ import MonthSelector from '../components/MonthSelector';
 import { useFab } from '../context/FabContext';
 import { useAuth } from '../context/AuthContext';  // NEW
 import ExpandableMovementCard from '../components/ExpandableMovementCard';
+import CategoryMovementsModal from '../components/CategoryMovementsModal';
 
 const Dashboard = () => {
     const { user } = useAuth();  // NEW: Get user info
@@ -16,6 +17,7 @@ const Dashboard = () => {
     const [isTransitioning, setIsTransitioning] = useState(false);
     const { lastUpdate, setFabDate } = useFab(); // Use context
     const [movements, setMovements] = useState([]); // NEW
+    const [movementsModal, setMovementsModal] = useState({ open: false, category: null });
 
     useEffect(() => {
         // Ensure FAB uses today's date when on Dashboard
@@ -204,7 +206,10 @@ const Dashboard = () => {
                                         };
 
                                         return (
-                                            <div key={index} className={`p-6 rounded-xl border-2 ${budget.percentage >= 90 ? 'border-rose-200' : 'border-slate-100'} ${getBgColor(budget.percentage)} transition-all`}>
+                                            <div key={index}
+                                                className={`p-6 rounded-xl border-2 ${budget.percentage >= 90 ? 'border-rose-200' : 'border-slate-100'} ${getBgColor(budget.percentage)} transition-all cursor-pointer hover:shadow-md`}
+                                                onClick={() => setMovementsModal({ open: true, category: budget.category })}
+                                            >
                                                 <div className="flex items-center justify-between mb-4">
                                                     <h3 className="text-lg font-bold text-slate-800">{budget.category}</h3>
                                                     <div className="flex items-center space-x-3">
@@ -269,6 +274,15 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Movements Modal */}
+            <CategoryMovementsModal
+                isOpen={movementsModal.open}
+                onClose={() => setMovementsModal({ open: false, category: null })}
+                category={movementsModal.category}
+                month={selectedMonth}
+                year={selectedYear}
+            />
         </>
     );
 };
