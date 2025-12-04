@@ -12,6 +12,23 @@ volumes:
 
 Questo significa che il database **NON viene cancellato** quando si aggiornano i container.
 
+## ⚙️ Configurazione Iniziale (IMPORTANTE!)
+
+**Prima del primo deploy**, crea il file `.env` per evitare problemi con i token JWT:
+
+```bash
+# Copia il template
+cp .env.example .env
+
+# Genera un SECRET_KEY sicuro
+python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(32))" >> .env
+
+# Verifica
+cat .env
+```
+
+Questo garantisce che il SECRET_KEY resti lo stesso anche dopo rebuild, mantenendo validi i token di autenticazione.
+
 ## 🚀 Deploy Automatico
 
 ### Su Linux/Mac:
@@ -140,3 +157,8 @@ ls -lh ./backups/
 - Ripristina il backup
 - Esegui la migrazione manualmente
 - Controlla i log per l'errore specifico
+
+**"401 Unauthorized dopo deploy"**
+- Fai logout e login di nuovo
+- Verifica che esista il file `.env` con SECRET_KEY
+- Se manca, crealo seguendo la sezione "Configurazione Iniziale"
