@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Plus, Trash2, Edit2, Tag } from 'lucide-react';
+import { Plus, Trash2, Edit2, Tag, List } from 'lucide-react';
+import CategoryMovementsModal from '../components/CategoryMovementsModal';
 
 const Categories = () => {
     const [categories, setCategories] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [formData, setFormData] = useState({ name: '', color: '#10b981' });
+    const [movementsModal, setMovementsModal] = useState({ open: false, category: null });
 
     const fetchCategories = async () => {
         try {
@@ -120,14 +122,18 @@ const Categories = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {categories.map((cat) => (
-                    <div key={cat.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center group hover:shadow-md transition-all">
+                    <div key={cat.id}
+                        className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center group hover:shadow-md transition-all cursor-pointer"
+                        onClick={() => setMovementsModal({ open: true, category: cat.name })}
+                    >
                         <div className="flex items-center space-x-3">
                             <div className="p-2 rounded-lg bg-slate-50 text-slate-500">
                                 <Tag size={20} />
                             </div>
                             <span className="font-medium text-slate-700">{cat.name}</span>
+                            <List size={16} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                             <button
                                 onClick={() => handleEdit(cat)}
                                 className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
@@ -144,6 +150,13 @@ const Categories = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Movements Modal */}
+            <CategoryMovementsModal
+                isOpen={movementsModal.open}
+                onClose={() => setMovementsModal({ open: false, category: null })}
+                category={movementsModal.category}
+            />
         </div>
     );
 };

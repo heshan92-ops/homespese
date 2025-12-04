@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Plus, Edit2, AlertCircle, Trash2, X, ArrowRight } from 'lucide-react';
+import { Plus, Edit2, AlertCircle, Trash2, X, ArrowRight, List } from 'lucide-react';
+import CategoryMovementsModal from '../components/CategoryMovementsModal';
 
 const Budgets = () => {
     const [budgets, setBudgets] = useState([]);
@@ -17,6 +18,9 @@ const Budgets = () => {
     // Delete Modal State
     const [deleteModal, setDeleteModal] = useState({ open: false, budget: null, expenses: [] });
     const [reassignCategory, setReassignCategory] = useState('');
+
+    // Movements Modal State
+    const [movementsModal, setMovementsModal] = useState({ open: false, category: null });
 
     const fetchData = async () => {
         try {
@@ -248,10 +252,14 @@ const Budgets = () => {
                     const isWarning = !isOver && percentage > 80;
 
                     return (
-                        <div key={budget.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-200 group">
+                        <div key={budget.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-200 group cursor-pointer"
+                            onClick={() => setMovementsModal({ open: true, category: budget.category })}>
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-lg">{budget.category}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-slate-800 text-lg">{budget.category}</h3>
+                                        <List size={16} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
                                     {/* NEW: Show applicable months if specified */}
                                     {budget.applicable_months && (() => {
                                         try {
@@ -272,7 +280,7 @@ const Budgets = () => {
                                         € {budget.amount.toFixed(2)}
                                     </p>
                                 </div>
-                                <div className="flex space-x-1">
+                                <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
                                     <button
                                         onClick={() => handleEdit(budget)}
                                         className="text-slate-300 hover:text-emerald-600 p-2 hover:bg-emerald-50 rounded-lg transition-colors"
@@ -327,8 +335,8 @@ const Budgets = () => {
                 })}
 
                 <button
-                    onClick={() => { 
-                        setEditingBudget({}); 
+                    onClick={() => {
+                        setEditingBudget({});
                         setFormData({ category: categories[0]?.name || '', amount: '', applicable_months: null });
                         setAllMonths(true);
                     }}
@@ -447,6 +455,13 @@ const Budgets = () => {
                     </div>
                 </div>
             )}
+
+            {/* Movements Modal */}
+            <CategoryMovementsModal
+                isOpen={movementsModal.open}
+                onClose={() => setMovementsModal({ open: false, category: null })}
+                category={movementsModal.category}
+            />
         </div>
     );
 };
