@@ -14,6 +14,7 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Settings from './pages/Settings';
+import Goals from './pages/Goals';
 
 import { FabProvider } from './context/FabContext';
 
@@ -49,6 +50,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Budgets />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/goals" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Goals />
                 </Layout>
               </ProtectedRoute>
             } />

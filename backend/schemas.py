@@ -155,6 +155,41 @@ class Budget(BudgetBase):
     class Config:
         orm_mode = True
 
+# Savings Goal
+class SavingsGoalBase(BaseModel):
+    name: str
+    target_amount: float
+    current_amount: float = 0.0
+    deadline: Optional[date] = None
+    color: Optional[str] = "#10b981"
+    icon: Optional[str] = None
+
+class SavingsGoalCreate(SavingsGoalBase):
+    pass
+
+class SavingsGoalUpdate(BaseModel):
+    name: Optional[str] = None
+    target_amount: Optional[float] = None
+    current_amount: Optional[float] = None
+    deadline: Optional[date] = None
+    color: Optional[str] = None
+    icon: Optional[str] = None
+
+class SavingsGoal(SavingsGoalBase):
+    id: int
+    family_id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+class Budget(BudgetBase):
+    id: int
+    family_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
 # SMTP Configuration
 class SMTPConfigCreate(BaseModel):
     smtp_server: str

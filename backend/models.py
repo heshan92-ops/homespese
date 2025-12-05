@@ -21,6 +21,7 @@ class Family(Base):
     budgets = relationship("Budget", back_populates="family")
     categories = relationship("Category", back_populates="family")
     recurring_expenses = relationship("RecurringExpense", back_populates="family")
+    savings_goals = relationship("SavingsGoal", back_populates="family")
 
 class User(Base):
     __tablename__ = "users"
@@ -113,6 +114,21 @@ class Budget(Base):
     family_id = Column(Integer, ForeignKey("families.id"), nullable=True)
 
     family = relationship("Family", back_populates="budgets")
+
+class SavingsGoal(Base):
+    __tablename__ = "savings_goals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    target_amount = Column(Float, nullable=False)
+    current_amount = Column(Float, default=0.0)
+    deadline = Column(Date, nullable=True)
+    color = Column(String, default="#10b981")
+    icon = Column(String, nullable=True)
+    family_id = Column(Integer, ForeignKey("families.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    family = relationship("Family", back_populates="savings_goals")
 
 class SMTPConfig(Base):
     __tablename__ = "smtp_config"

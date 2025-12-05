@@ -52,6 +52,7 @@ const Login = () => {
                                 onChange={(e) => setUsername(e.target.value)}
                                 className="pl-10 w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 py-2.5"
                                 placeholder="admin"
+                                autoComplete="username"
                             />
                         </div>
                     </div>
@@ -69,6 +70,7 @@ const Login = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="pl-10 w-full rounded-xl border-slate-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 py-2.5"
                                 placeholder="••••••••"
+                                autoComplete="current-password"
                             />
                         </div>
                         <div className="flex justify-end mt-2">

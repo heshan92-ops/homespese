@@ -461,3 +461,34 @@ def update_recurring_expense(db: Session, recurring_id: int, recurring: schemas.
         generate_recurring_movements(db, db_recurring)
         
     return db_recurring
+
+# Savings Goals
+def get_savings_goals(db: Session, family_id: int):
+    return db.query(models.SavingsGoal).filter(models.SavingsGoal.family_id == family_id).all()
+
+def create_savings_goal(db: Session, goal: schemas.SavingsGoalCreate, family_id: int):
+    db_goal = models.SavingsGoal(**goal.dict(), family_id=family_id)
+    db.add(db_goal)
+    db.commit()
+    db.refresh(db_goal)
+    return db_goal
+
+def update_savings_goal(db: Session, goal_id: int, goal_update: schemas.SavingsGoalUpdate, family_id: int):
+    db_goal = db.query(models.SavingsGoal).filter(models.SavingsGoal.id == goal_id, models.SavingsGoal.family_id == family_id).first()
+    if not db_goal:
+        return None
+    
+    update_data = goal_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_goal, key, value)
+        
+    db.commit()
+    db.refresh(db_goal)
+    return db_goal
+
+def delete_savings_goal(db: Session, goal_id: int, family_id: int):
+    db_goal = db.query(models.SavingsGoal).filter(models.SavingsGoal.id == goal_id, models.SavingsGoal.family_id == family_id).first()
+    if db_goal:
+        db.delete(db_goal)
+        db.commit()
+    return db_goal

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, List, PieChart, Wallet, LogOut, User, Tag, Users, Menu, X, Settings, ChevronDown, Repeat } from 'lucide-react';
+import { LayoutDashboard, List, PieChart, Wallet, LogOut, User, Tag, Users, Menu, X, Settings, ChevronDown, Repeat, Target } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
@@ -58,6 +58,7 @@ const Layout = ({ children }) => {
                                 <NavItem to="/" icon={LayoutDashboard} label="Dashboard" />
                                 <NavItem to="/movements" icon={List} label="Movimenti" />
                                 <NavItem to="/budgets" icon={PieChart} label="Budget" />
+                                <NavItem to="/goals" icon={Target} label="Obiettivi" />
                                 <NavItem to="/recurring" icon={Repeat} label="Ricorrenti" />
                                 <NavItem to="/categories" icon={Tag} label="Categorie" />
                             </div>
@@ -140,6 +141,7 @@ const Layout = ({ children }) => {
                                 <NavItem to="/" icon={LayoutDashboard} label="Dashboard" onClick={() => setIsMobileMenuOpen(false)} />
                                 <NavItem to="/movements" icon={List} label="Movimenti" onClick={() => setIsMobileMenuOpen(false)} />
                                 <NavItem to="/budgets" icon={PieChart} label="Budget" onClick={() => setIsMobileMenuOpen(false)} />
+                                <NavItem to="/goals" icon={Target} label="Obiettivi" onClick={() => setIsMobileMenuOpen(false)} />
                                 <NavItem to="/recurring" icon={Repeat} label="Ricorrenti" onClick={() => setIsMobileMenuOpen(false)} />
                                 <NavItem to="/categories" icon={Tag} label="Categorie" onClick={() => setIsMobileMenuOpen(false)} />
                                 {user?.is_superuser && (
@@ -167,18 +169,18 @@ const Layout = ({ children }) => {
                                     <LogOut size={18} />
                                     <span className="font-medium text-sm">Esci</span>
                                 </button>
-                            </div>
-                        </div>
-                    </div>
+                            </div >
+                        </div >
+                    </div >
                 )}
-            </nav>
+            </nav >
             <main className="flex-grow bg-slate-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
                     {children}
                 </div>
             </main>
             <GlobalFab />
-        </div>
+        </div >
     );
 };
 
