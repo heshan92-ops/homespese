@@ -81,16 +81,38 @@ def get_family(db: Session, family_id: int):
     return db.query(models.Family).filter(models.Family.id == family_id).first()
 
 # Movements
-def get_movements(db: Session, family_id: int, skip: int = 0, limit: int = 100, month: int = None, year: int = None, include_planned: bool = True): # NEW family_id
+def get_movements(db: Session, family_id: int, skip: int = 0, limit: int = 100, 
+                  month: int = None, year: int = None, 
+                  start_date: date = None, end_date: date = None,
+                  category: str = None, type: str = None,
+                  include_planned: bool = True): # NEW family_id
     query = db.query(models.Movement).filter(models.Movement.family_id == family_id) # Filter by family
+    
+    # Date filters
+    if start_date:
+        query = query.filter(models.Movement.date >= start_date)
+    if end_date:
+        query = query.filter(models.Movement.date <= end_date)
+        
+    # Month/Year filter (legacy but useful)
     if month is not None and year is not None:
         query = query.filter(
             extract('year', models.Movement.date) == year,
             extract('month', models.Movement.date) == month
         )
+        
+    # Category filter
+    if category:
+        query = query.filter(models.Movement.category == category)
+        
+    # Type filter
+    if type:
+        query = query.filter(models.Movement.type == type)
+        
     if not include_planned:
         query = query.filter(models.Movement.is_planned == False)
-    return query.order_by(models.Movement.date.desc()).offset(skip).limit(limit).all()
+        
+    return query.order_by(models.Movement.date.desc(), models.Movement.id.desc()).offset(skip).limit(limit).all()
 
 def get_available_years(db: Session, family_id: int): # NEW family_id
     """Get list of years that have movements data, plus current year"""

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import api from '../api/client';
-import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, Calendar, Repeat } from 'lucide-react';
+import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, Calendar, Repeat, Filter, X } from 'lucide-react';
 import { useFab } from '../context/FabContext';
 
 const Movements = () => {
@@ -31,6 +31,11 @@ const Movements = () => {
         end_date: null
     });
 
+    // Filters
+    const [filterCategory, setFilterCategory] = useState('');
+    const [filterType, setFilterType] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
+
     const fabContext = useFab();
     if (!fabContext) {
         return <div className="p-10 text-red-600 font-bold">ERROR: FabContext is missing!</div>;
@@ -58,7 +63,12 @@ const Movements = () => {
 
     const fetchMovements = async () => {
         try {
-            const params = { month: selectedMonth, year: selectedYear };
+            const params = {
+                month: selectedMonth,
+                year: selectedYear,
+                category: filterCategory || undefined,
+                type: filterType || undefined
+            };
             const res = await api.get('/movements', { params });
             setMovements(res.data);
         } catch (error) {
@@ -66,10 +76,33 @@ const Movements = () => {
         }
     };
 
+    // Group movements by date
+    const groupedMovements = useMemo(() => {
+        const groups = {};
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+        movements.forEach(m => {
+            let dateLabel = m.date;
+            if (m.date === today) dateLabel = 'Oggi';
+            else if (m.date === yesterday) dateLabel = 'Ieri';
+            else {
+                const d = new Date(m.date);
+                dateLabel = d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+                // Capitalize first letter
+                dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
+            }
+
+            if (!groups[dateLabel]) groups[dateLabel] = [];
+            groups[dateLabel].push(m);
+        });
+        return groups;
+    }, [movements]);
+
     useEffect(() => {
         fetchCategories();
         fetchMovements();
-    }, [selectedMonth, selectedYear]);
+    }, [selectedMonth, selectedYear, filterCategory, filterType]);
 
     const handleMonthChange = (month, year) => {
         setSelectedMonth(month);
@@ -273,54 +306,107 @@ const Movements = () => {
                             <h2 className="text-xl font-bold text-slate-800">Movimenti</h2>
                             <p className="text-sm text-slate-500 mt-1">{movements.length} transazioni</p>
                         </div>
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`p-2 rounded-lg transition-colors flex items-center gap-2 ${showFilters ? 'bg-emerald-100 text-emerald-700' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                        >
+                            <Filter size={18} />
+                            <span className="text-sm font-medium hidden sm:inline">Filtri</span>
+                        </button>
                     </div>
-                    <div className="divide-y divide-slate-100 max-h-[calc(100vh-200px)] overflow-y-auto">
-                        {movements.length > 0 ? (
-                            movements.map((m) => (
-                                <div key={m.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between">
-                                    <div className="flex items-center space-x-3 flex-1">
-                                        <div className={`p-2 rounded-full ${m.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                                            {m.type === 'INCOME' ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="font-medium text-slate-800">{m.category}</p>
-                                            <p className="text-xs text-slate-500">
-                                                {new Date(m.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                {m.description && ` • ${m.description}`}
-                                            </p>
-                                        </div>
+
+                    {/* Filters Panel */}
+                    {showFilters && (
+                        <div className="p-4 bg-slate-50 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2">
+                            <div>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">Categoria</label>
+                                <select
+                                    value={filterCategory}
+                                    onChange={(e) => setFilterCategory(e.target.value)}
+                                    className="w-full rounded-lg border-slate-200 text-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                >
+                                    <option value="">Tutte le categorie</option>
+                                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">Tipo</label>
+                                <select
+                                    value={filterType}
+                                    onChange={(e) => setFilterType(e.target.value)}
+                                    className="w-full rounded-lg border-slate-200 text-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                >
+                                    <option value="">Tutti i tipi</option>
+                                    <option value="INCOME">Entrate</option>
+                                    <option value="EXPENSE">Spese</option>
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+                        {Object.keys(groupedMovements).length > 0 ? (
+                            Object.entries(groupedMovements).map(([dateLabel, groupMovements]) => (
+                                <div key={dateLabel}>
+                                    <div className="sticky top-0 bg-slate-50/95 backdrop-blur-sm px-4 py-2 border-y border-slate-100 z-10 shadow-sm">
+                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">{dateLabel}</h3>
                                     </div>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="text-right">
-                                            <p className={`font-bold ${m.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-700'}`}>
-                                                {m.type === 'EXPENSE' && '-'}€ {m.amount.toFixed(2)}
-                                            </p>
-                                            {m.is_planned && (
-                                                <span className="text-[10px] font-medium bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
-                                                    Prevista
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="flex space-x-1">
-                                            <button
-                                                onClick={() => handleEdit(m)}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(m.id)}
-                                                className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
+                                    <div className="divide-y divide-slate-50">
+                                        {groupMovements.map((m) => (
+                                            <div key={m.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between group">
+                                                <div className="flex items-center space-x-3 flex-1">
+                                                    <div className={`p-2 rounded-full ${m.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                                        {m.type === 'INCOME' ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-slate-800">{m.category}</p>
+                                                        {m.description && (
+                                                            <p className="text-xs text-slate-500 truncate max-w-[200px] sm:max-w-xs">
+                                                                {m.description}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="text-right">
+                                                        <p className={`font-bold ${m.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-700'}`}>
+                                                            {m.type === 'EXPENSE' && '-'}€ {m.amount.toFixed(2)}
+                                                        </p>
+                                                        {m.is_planned && (
+                                                            <span className="text-[10px] font-medium bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
+                                                                Prevista
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => handleEdit(m)}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(m.id)}
+                                                            className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             ))
                         ) : (
                             <div className="p-12 text-center text-slate-400">
-                                Nessun movimento in questo periodo
+                                <div className="mb-3 flex justify-center">
+                                    <Filter size={48} className="text-slate-200" />
+                                </div>
+                                <p>Nessun movimento trovato</p>
+                                {(filterCategory || filterType) && (
+                                    <p className="text-sm mt-1">Prova a modificare i filtri</p>
+                                )}
                             </div>
                         )}
                     </div>

@@ -10,18 +10,36 @@ router = APIRouter(
     tags=["movements"],
 )
 
+from datetime import date
+
 @router.get("/", response_model=List[schemas.Movement])
 def read_movements(
     skip: int = 0, 
     limit: int = 100, 
     month: Optional[int] = None, 
     year: Optional[int] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    category: Optional[str] = None,
+    type: Optional[str] = None,
     include_planned: bool = True,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
-    """Get movements, optionally filtered by month, year, and planned status."""
-    movements = crud.get_movements(db, family_id=current_user.family_id, skip=skip, limit=limit, month=month, year=year, include_planned=include_planned)
+    """Get movements, optionally filtered by date range, category, type, etc."""
+    movements = crud.get_movements(
+        db, 
+        family_id=current_user.family_id, 
+        skip=skip, 
+        limit=limit, 
+        month=month, 
+        year=year, 
+        start_date=start_date,
+        end_date=end_date,
+        category=category,
+        type=type,
+        include_planned=include_planned
+    )
     return movements
 
 @router.get("/years", response_model=List[int])
